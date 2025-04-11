@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'camera_Publisher = opencv_a1.cameraPublisher:main',
          	'camera_Subscriber = opencv_a1.cameraSubscriber:main',
+            'aruco_viewer = opencv_a1.aruco_image_viewer:main',
         ],
     },
 )

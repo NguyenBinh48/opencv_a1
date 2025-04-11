@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
+from cv_bridge import CvBridge
+import cv2
 
 class CameraSubscriber(Node):
     def __init__(self):

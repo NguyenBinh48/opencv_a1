@@ -1,6 +1,8 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
+from cv_bridge import CvBridge
+from sensor_msgs.msg import Image
 import cv2
 import cv2.aruco as aruco
 import numpy as np
@@ -11,6 +13,8 @@ class CameraPublisher(Node):
 
         # ROS2 Publisher (publishes (X, Y, Z) coordinates)
         self.publisher_ = self.create_publisher(Float32MultiArray, '/aruco_position', 10)
+
+        self.publisher_2 = self.create_publisher(Image, '/image_data', 10)  
 
         # Camera setup
         self.cameraDevice = 0
@@ -37,11 +41,18 @@ class CameraPublisher(Node):
         self.FPS= FPS1
         self.timer = self.create_timer(self.FPS, self.publish_frame)
 
+        self.bridge = CvBridge()
+
     def publish_frame(self):
         ret, frame = self.cap.read()
         if not ret:
             self.get_logger().warning("Failed to capture image")
             return
+        
+        msg_image_data = self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
+        self.publisher_2.publish(msg_image_data)
+
+
 
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -60,6 +71,7 @@ class CameraPublisher(Node):
                     msg = Float32MultiArray(data=[x, y, z])
                     self.publisher_.publish(msg)
 
+
                     # Draw bounding box around ArUco marker
                     corner_points = corners[index][0]
                     top_left = tuple(corner_points[0].astype(int))
@@ -71,8 +83,8 @@ class CameraPublisher(Node):
                     cv2.drawFrameAxes(frame, self.camera_matrix, self.dist_coeffs, rvec, tvec, 0.05)
 
         # Show the camera feed with detected ArUco marker
-        cv2.imshow("Camera Feed", frame)
-        cv2.waitKey(1)
+        # cv2.imshow("Camera Feed", frame)
+        # cv2.waitKey(1)
 
     def destroy_node(self):
         self.cap.release()
